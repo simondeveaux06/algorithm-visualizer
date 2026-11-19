@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sorting & Searching Algorithm Visualizer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Sorting &amp; Searching Visualizer</h1>
+    <p class="subtitle">Watch comparisons, swaps and recursion happen in real time.</p>
+  </header>
+
+  <section class="controls">
+    <div class="control">
+      <label for="algorithm">Algorithm</label>
+      <select id="algorithm">
+        <optgroup label="Sorting">
+          <option value="bubble">Bubble Sort</option>
+          <option value="insertion">Insertion Sort</option>
+          <option value="selection">Selection Sort</option>
+          <option value="merge" selected>Merge Sort</option>
+          <option value="quick">Quick Sort</option>
+          <option value="heap">Heap Sort</option>
+        </optgroup>
+        <optgroup label="Searching">
+          <option value="linear">Linear Search</option>
+          <option value="binary">Binary Search</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="input">Input</label>
+      <select id="input">
+        <option value="random">Random</option>
+        <option value="nearly">Nearly sorted</option>
+        <option value="reversed">Reversed</option>
+        <option value="few">Few unique</option>
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="size">Size: <span id="sizeValue">60</span></label>
+      <input type="range" id="size" min="8" max="150" value="60" />
+    </div>
+
+    <div class="control">
+      <label for="speed">Speed</label>
+      <input type="range" id="speed" min="1" max="100" value="60" />
+    </div>
+
+    <div class="control search-only" id="targetControl">
+      <label for="target">Target</label>
+      <div class="inline">
+        <input type="number" id="target" min="1" max="100" />
+        <button id="randomTarget" class="secondary" title="Pick a value from the array">🎲</button>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="newArray" class="secondary">New array</button>
+      <button id="step" class="secondary">Step</button>
+      <button id="start">Start</button>
+    </div>
+  </section>
+
+  <main>
+    <section class="stage">
+      <div id="bars" class="bars">
+        <div id="targetLine" class="target-line hidden"></div>
+      </div>
+      <div class="legend">
+        <span><i class="swatch compare"></i>Compare</span>
+        <span><i class="swatch swap"></i>Swap / write</span>
+        <span><i class="swatch pivot"></i>Pivot / min</span>
+        <span><i class="swatch heap"></i>Heap</span>
+        <span><i class="swatch sorted"></i>Sorted / found</span>
+        <span><i class="swatch dim"></i>Outside active range</span>
+      </div>
+      <p id="status" class="status">Pick an algorithm and press Start.</p>
+    </section>
+
+    <aside class="side">
+      <div class="stats">
+        <div class="stat"><span class="label">Comparisons</span><span id="comparisons" class="value">0</span></div>
+        <div class="stat"><span class="label">Swaps / writes</span><span id="swaps" class="value">0</span></div>
+        <div class="stat"><span class="label">Recursion depth</span><span id="depth" class="value">0</span></div>
+        <div class="stat"><span class="label">Max depth</span><span id="maxDepth" class="value">0</span></div>
+      </div>
+
+      <div class="panel">
+        <h2>Call stack</h2>
+        <ol id="callStack" class="call-stack"><li class="empty">empty</li></ol>
+      </div>
+
+      <div class="panel">
+        <h2 id="algoName">Merge Sort</h2>
+        <p id="algoDesc"></p>
+        <table class="complexity">
+          <tr><th>Best</th><th>Average</th><th>Worst</th><th>Space</th></tr>
+          <tr><td id="cBest"></td><td id="cAvg"></td><td id="cWorst"></td><td id="cSpace"></td></tr>
+        </table>
+      </div>
+    </aside>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
