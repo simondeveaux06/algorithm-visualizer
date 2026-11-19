@@ -447,6 +447,9 @@ function apply(ev) {
       vis.swaps++;
       vis.swap = [ev.i, ev.j];
       break;
+    case "range":  
+        vis.range = [ev.lo, ev.hi]; 
+        break;
     case "write":
       vis.swaps++;
       vis.swap = [ev.i];
