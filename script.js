@@ -245,6 +245,50 @@ function* binarySearchRec(a, target, lo, hi) {
   return result;
 }
 
+// Shell Sort: insertion sort on elements "gap" apart, shrinking the gap each pass
+function* shellSort(a) {
+  const n = a.length;
+  for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+    yield { type: "status", text: `Gap = ${gap}` };
+    for (let i = gap; i < n; i++) {
+      let j = i;
+      while (j >= gap) {
+        yield { type: "compare", i: j - gap, j };
+        if (a[j - gap] <= a[j]) break;
+        swap(a, j - gap, j);
+        yield { type: "swap", i: j - gap, j };
+        j -= gap;
+      }
+    }
+  }
+}
+
+// Jump Search: jump ahead in blocks of √n, then scan the block linearly
+function* jumpSearch(a, target) {
+  const n = a.length, step = Math.floor(Math.sqrt(n)) || 1;
+  let prev = 0, curr = step;
+  while (curr < n && a[curr - 1] < target) {
+    yield { type: "compare", i: curr - 1, j: -1 };
+    yield { type: "range", lo: curr, hi: Math.min(curr + step, n) - 1 };
+    prev = curr;
+    curr += step;
+  }
+  yield { type: "range", lo: prev, hi: Math.min(curr, n) - 1 };
+  for (let i = prev; i < Math.min(curr, n); i++) {
+    yield { type: "compare", i, j: -1 };
+    if (a[i] === target) { yield { type: "found", i }; return; }
+    if (a[i] > target) break;
+  }
+  yield { type: "notfound" };
+}
+
+
+//new-sorts
+//
+//
+//
+//
+
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 const el = {
