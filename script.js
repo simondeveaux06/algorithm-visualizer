@@ -37,13 +37,23 @@ const ALGORITHMS = {
     desc: "Builds a max-heap (teal region), then repeatedly swaps the root (largest) to the end and re-heapifies. Heapify recursion is shown in the call stack.",
     c: ["O(n log n)", "O(n log n)", "O(n log n)", "O(1)"],
   },
+    shell: {
+    name: "Shell Sort", kind: "sort", fn: shellSort,
+    desc: "A faster insertion sort: first sorts elements far apart (the gap), then shrinks the gap until it's 1. Large values move long distances early.",
+    c: ["O(n log n)", "O(n^1.5)", "O(n²)", "O(1)"],
+  },
+  jump: {
+    name: "Jump Search", kind: "search", fn: jumpSearch, needsSorted: true,
+    desc: "Requires sorted data. Jumps ahead √n elements at a time until it passes the target, then scans that block one by one.",
+    c: ["O(1)", "O(√n)", "O(√n)", "O(1)"],
+  },
   linear: {
     name: "Linear Search", kind: "search", fn: linearSearch,
     desc: "Checks every element from left to right until it finds the target (dashed line). Works on unsorted data.",
     c: ["O(1)", "O(n)", "O(n)", "O(1)"],
   },
   binary: {
-    name: "Binary Search", kind: "search", fn: binarySearch,
+    name: "Binary Search", kind: "search", fn: binarySearch, needsSorted: true
     desc: "Requires sorted data. Compares the middle element to the target and discards half of the range each step (recursive version).",
     c: ["O(1)", "O(log n)", "O(log n)", "O(log n)"],
   },
