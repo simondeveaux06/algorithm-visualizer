@@ -494,7 +494,7 @@ function prepare() {
 
   if (algo.kind === "search") {
     if (!el.target.value) pickRandomTarget();
-    if (algo === ALGORITHMS.binary && !isSorted(arr)) {
+    if (algo.needsSorted && !isSorted(arr)) {
       arr.sort((x, y) => x - y);
       setStatus("Binary search needs sorted data, so the array was sorted first.");
     } else {
