@@ -37,7 +37,7 @@ const ALGORITHMS = {
     desc: "Builds a max-heap (teal region), then repeatedly swaps the root (largest) to the end and re-heapifies. Heapify recursion is shown in the call stack.",
     c: ["O(n log n)", "O(n log n)", "O(n log n)", "O(1)"],
   },
-    shell: {
+  shell: {
     name: "Shell Sort", kind: "sort", fn: shellSort,
     desc: "A faster insertion sort: first sorts elements far apart (the gap), then shrinks the gap until it's 1. Large values move long distances early.",
     c: ["O(n log n)", "O(n^1.5)", "O(n²)", "O(1)"],
@@ -47,13 +47,38 @@ const ALGORITHMS = {
     desc: "Requires sorted data. Jumps ahead √n elements at a time until it passes the target, then scans that block one by one.",
     c: ["O(1)", "O(√n)", "O(√n)", "O(1)"],
   },
+  cocktail: {
+    name: "Cocktail Shaker Sort", kind: "sort", fn: cocktailSort,
+    desc: "Bubble sort in both directions: a forward pass pushes the largest value right, then a backward pass pushes the smallest value left. Small values near the end no longer take forever to move.",
+    c: ["O(n)", "O(n²)", "O(n²)", "O(1)"],
+  },
+  comb: {
+    name: "Comb Sort", kind: "sort", fn: combSort,
+    desc: "Bubble sort with a shrinking gap (divided by 1.3 each pass). Comparing far-apart elements first clears out small values stuck near the end ('turtles').",
+    c: ["O(n log n)", "O(n²/2ᵖ)", "O(n²)", "O(1)"],
+  },
+  counting: {
+    name: "Counting Sort", kind: "sort", fn: countingSort,
+    desc: "A non-comparison sort: counts how many times each value appears, then rewrites the array in order from those counts. It makes zero comparisons and is very fast when the value range k is small.",
+    c: ["O(n + k)", "O(n + k)", "O(n + k)", "O(k)"],
+  },
+  radix: {
+    name: "Radix Sort (LSD)", kind: "sort", fn: radixSort,
+    desc: "A non-comparison sort: sorts by the ones digit, then the tens, then the hundreds, using a stable counting pass for each digit. Watch the array become ordered one digit at a time.",
+    c: ["O(d·n)", "O(d·n)", "O(d·n)", "O(n + 10)"],
+  },
+  interpolation: {
+    name: "Interpolation Search", kind: "search", fn: interpolationSearch, needsSorted: true,
+    desc: "Requires sorted data. Instead of always checking the middle, it estimates where the target should be from its value, like opening a dictionary near 'S' for 'Smith'. Very fast on evenly spread data.",
+    c: ["O(1)", "O(log log n)", "O(n)", "O(1)"],
+  },
   linear: {
     name: "Linear Search", kind: "search", fn: linearSearch,
     desc: "Checks every element from left to right until it finds the target (dashed line). Works on unsorted data.",
     c: ["O(1)", "O(n)", "O(n)", "O(1)"],
   },
   binary: {
-    name: "Binary Search", kind: "search", fn: binarySearch, needsSorted: true
+    name: "Binary Search", kind: "search", fn: binarySearch, needsSorted: true,
     desc: "Requires sorted data. Compares the middle element to the target and discards half of the range each step (recursive version).",
     c: ["O(1)", "O(log n)", "O(log n)", "O(log n)"],
   },
@@ -293,11 +318,121 @@ function* jumpSearch(a, target) {
 }
 
 
-//new-sorts
-//
-//
-//
-//
+// ---------- More algorithms ----------
+
+// Cocktail Shaker Sort: bubble sort that alternates direction each pass
+function* cocktailSort(a) {
+  let start = 0, end = a.length - 1, swapped = true;
+  while (swapped && start < end) {
+    swapped = false;
+    yield { type: "status", text: "Forward pass →" };
+    for (let i = start; i < end; i++) {
+      yield { type: "compare", i, j: i + 1 };
+      if (a[i] > a[i + 1]) {
+        swap(a, i, i + 1);
+        swapped = true;
+        yield { type: "swap", i, j: i + 1 };
+      }
+    }
+    yield { type: "sorted", i: end };
+    end--;
+    if (!swapped) break;
+
+    swapped = false;
+    yield { type: "status", text: "← Backward pass" };
+    for (let i = end; i > start; i--) {
+      yield { type: "compare", i: i - 1, j: i };
+      if (a[i - 1] > a[i]) {
+        swap(a, i - 1, i);
+        swapped = true;
+        yield { type: "swap", i: i - 1, j: i };
+      }
+    }
+    yield { type: "sorted", i: start };
+    start++;
+  }
+}
+
+// Comb Sort: bubble sort with a gap that shrinks by a factor of 1.3
+function* combSort(a) {
+  const n = a.length;
+  let gap = n, sorted = false;
+  while (!sorted) {
+    gap = Math.floor(gap / 1.3);
+    if (gap <= 1) { gap = 1; sorted = true; }
+    yield { type: "status", text: `Gap = ${gap}` };
+    for (let i = 0; i + gap < n; i++) {
+      yield { type: "compare", i, j: i + gap };
+      if (a[i] > a[i + gap]) {
+        swap(a, i, i + gap);
+        sorted = false;
+        yield { type: "swap", i, j: i + gap };
+      }
+    }
+  }
+}
+
+// Counting Sort: tally each value, then rewrite the array from the tallies
+function* countingSort(a) {
+  if (!a.length) return;
+  const max = Math.max(...a);
+  const count = new Array(max + 1).fill(0);
+  yield { type: "status", text: "Counting how many times each value appears…" };
+  for (let i = 0; i < a.length; i++) {
+    count[a[i]]++;
+    yield { type: "read", i };
+  }
+  yield { type: "status", text: "Writing values back in order from the counts…" };
+  let k = 0;
+  for (let v = 0; v <= max; v++) {
+    while (count[v]-- > 0) {
+      a[k] = v;
+      yield { type: "write", i: k };
+      yield { type: "sorted", i: k };
+      k++;
+    }
+  }
+}
+
+// Radix Sort (LSD, base 10): stable counting pass on each digit
+function* radixSort(a) {
+  if (!a.length) return;
+  const max = Math.max(...a);
+  const names = ["ones", "tens", "hundreds", "thousands"];
+  for (let exp = 1, d = 0; Math.floor(max / exp) > 0; exp *= 10, d++) {
+    yield { type: "status", text: `Sorting by the ${names[d] || "next"} digit…` };
+    const digit = (x) => Math.floor(x / exp) % 10;
+    const count = new Array(10).fill(0);
+    for (let i = 0; i < a.length; i++) {
+      count[digit(a[i])]++;
+      yield { type: "read", i };
+    }
+    for (let b = 1; b < 10; b++) count[b] += count[b - 1];
+    const out = new Array(a.length);
+    for (let i = a.length - 1; i >= 0; i--) out[--count[digit(a[i])]] = a[i];
+    for (let i = 0; i < a.length; i++) {
+      a[i] = out[i];
+      yield { type: "write", i };
+    }
+  }
+}
+
+// Interpolation Search: guess the position from the target's value
+function* interpolationSearch(a, target) {
+  let lo = 0, hi = a.length - 1;
+  while (lo <= hi && target >= a[lo] && target <= a[hi]) {
+    yield { type: "range", lo, hi };
+    const pos = a[hi] === a[lo]
+      ? lo
+      : lo + Math.floor(((target - a[lo]) * (hi - lo)) / (a[hi] - a[lo]));
+    yield { type: "compare", i: pos, j: -1 };
+    if (a[pos] === target) { yield { type: "found", i: pos }; return; }
+    if (a[pos] < target) lo = pos + 1;
+    else hi = pos - 1;
+  }
+  yield { type: "notfound" };
+}
+
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
@@ -447,9 +582,12 @@ function apply(ev) {
       vis.swaps++;
       vis.swap = [ev.i, ev.j];
       break;
-    case "range":  
-        vis.range = [ev.lo, ev.hi]; 
-        break;
+    case "range":
+      vis.range = [ev.lo, ev.hi];
+      break;
+    case "read":   // look at a value without comparing it (counting / radix sort)
+      vis.compare = [ev.i];
+      break;
     case "write":
       vis.swaps++;
       vis.swap = [ev.i];
